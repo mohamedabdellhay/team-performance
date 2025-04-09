@@ -129,10 +129,10 @@ Distributed under the MIT License. See `LICENSE` for more information.
 
 ## 📧 Contact
 
-Project Maintainer - [Your Name](mailto:your.email@example.com)
+Project Maintainer - [mohamedabdellhay](mailto:mohamedabdellhay1@gmail.com)
 
-Project Link: [https://github.com/yourusername/employee-performance-tracker](https://github.com/yourusername/employee-performance-tracker)
+Project Link: [team-performance.netlify.app](https://team-performance.netlify.app/)
 
 ---
 
-Made with ❤️ by [Your Name]
+Made with ❤️ by [mohamedabdellhay]
