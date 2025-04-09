@@ -248,7 +248,9 @@ tr:hover {
 .page-item {
   list-style: none;
 }
-
+.employee-list {
+  margin-top: 90px;
+}
 .page-link {
   padding: 8px 12px;
   border: 1px solid #ddd;
