@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PerformanceTrack | Employee Performance Tool</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #3498db;
+            --secondary: #2980b9;
+            --dark: #2c3e50;
+            --light: #ecf0f1;
+            --success: #2ecc71;
+            --danger: #e74c3c;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f8f9fa;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        header {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 1rem 0;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 0;
+        }
+
+        .logo {
+            font-size: 1.8rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+        }
+
+        .logo i {
+            margin-right: 10px;
+        }
+
+        .hero {
+            padding: 5rem 0;
+            text-align: center;
+        }
+
+        .hero h1 {
+            font-size: 3.5rem;
+            margin-bottom: 1.5rem;
+            color: var(--dark);
+        }
+
+        .hero p {
+            font-size: 1.2rem;
+            max-width: 700px;
+            margin: 0 auto 2rem;
+            color: #555;
+        }
+
+        .entry-options {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-top: 3rem;
+            flex-wrap: wrap;
+        }
+
+        .entry-card {
+            background: white;
+            border-radius: 10px;
+            padding: 2.5rem;
+            width: 350px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s;
+            text-align: center;
+        }
+
+        .entry-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .entry-icon {
+            font-size: 3.5rem;
+            color: var(--primary);
+            margin-bottom: 1.5rem;
+        }
+
+        .entry-card h2 {
+            font-size: 1.8rem;
+            margin-bottom: 1rem;
+            color: var(--dark);
+        }
+
+        .entry-card p {
+            color: #666;
+            margin-bottom: 2rem;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 0.8rem 1.8rem;
+            border-radius: 30px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--secondary);
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-outline {
+            background: transparent;
+            color: var(--primary);
+            border: 2px solid var(--primary);
+        }
+
+        .btn-outline:hover {
+            background: var(--primary);
+            color: white;
+        }
+
+        .features {
+            padding: 5rem 0;
+            background: white;
+        }
+
+        .section-title {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .section-title h2 {
+            font-size: 2.5rem;
+            color: var(--dark);
+            margin-bottom: 1rem;
+        }
+
+        .section-title p {
+            color: #777;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        footer {
+            background: var(--dark);
+            color: white;
+            padding: 2rem 0;
+            text-align: center;
+        }
+
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .footer-links a {
+            color: white;
+            text-decoration: none;
+        }
+
+        .footer-links a:hover {
+            text-decoration: underline;
+        }
+
+        .copyright {
+            color: #bbb;
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+
+            .hero p {
+                font-size: 1rem;
+            }
+
+            .entry-options {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .entry-card {
+                width: 100%;
+                max-width: 350px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- <header>
+        <div class="container">
+            <nav>
+                <div class="logo">
+                    <i class="fas fa-chart-line"></i>
+                    <span>PerformanceTrack</span>
+                </div>
+            </nav>
+        </div>
+    </header> -->
+
+    <section class="hero">
+        <div class="container">
+            <h1>Employee Performance Tracker</h1>
+            <!-- <p>Streamline your team's performance tracking with our easy-to-use tools for data entry and analytics</p> -->
+
+            <div class="entry-options">
+                <div class="entry-card">
+                    <div class="entry-icon">
+                        <i class="fas fa-keyboard"></i>
+                    </div>
+                    <h2>Data Entry</h2>
+                    <p>Enter daily performance metrics for your team members including productivity, quality, and error
+                        rates</p>
+                    <a href="data-entry.html" class="btn btn-primary">Enter Data</a>
+                </div>
+
+                <div class="entry-card">
+                    <div class="entry-icon">
+                        <i class="fas fa-chart-pie"></i>
+                    </div>
+                    <h2>View Analytics</h2>
+                    <p>Analyze performance trends, compare team members, and generate insightful reports</p>
+                    <a href="dashboard.html" class="btn btn-outline">View Dashboard</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- <section class="features">
+        <div class="container">
+            <div class="section-title">
+                <h2>Why Use PerformanceTrack?</h2>
+                <p>Our tool helps managers and HR professionals make data-driven decisions about team performance</p>
+            </div>
+
+            <div class="entry-options">
+                <div class="entry-card">
+                    <div class="entry-icon">
+                        <i class="fas fa-stopwatch"></i>
+                    </div>
+                    <h2>Time Saving</h2>
+                    <p>Reduce manual tracking and automatic calculations save hours each week</p>
+                </div>
+
+                <div class="entry-card">
+                    <div class="entry-icon">
+                        <i class="fas fa-bullseye"></i>
+                    </div>
+                    <h2>Accurate Insights</h2>
+                    <p>Our algorithms provide precise performance metrics and identify areas for improvement</p>
+                </div>
+
+                <div class="entry-card">
+                    <div class="entry-icon">
+                        <i class="fas fa-mobile-alt"></i>
+                    </div>
+                    <h2>Access Anywhere</h2>
+                    <p>Works on all devices - desktop, tablet, and mobile for on-the-go tracking</p>
+                </div>
+            </div>
+        </div>
+    </section> -->
+
+    <!-- <footer>
+        <div class="container">
+            <div class="footer-links">
+                <a href="#">Privacy Policy</a>
+                <a href="#">Terms of Service</a>
+                <a href="#">Contact Us</a>
+            </div>
+            <p class="copyright">© 2023 PerformanceTrack. All rights reserved.</p>
+        </div>
+    </footer> -->
+</body>
+
+</html>
