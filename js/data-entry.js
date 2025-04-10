@@ -5,6 +5,8 @@ let currentEditingDate = null;
 // Initialize with today's date
 document.addEventListener("DOMContentLoaded", () => {
   const today = new Date().toISOString().split("T")[0];
+  // console.log(new Date());
+  console.log(today);
   document.getElementById("date").value = today;
   showRecords();
 });
@@ -242,4 +244,18 @@ function formatDate(dateString) {
     day: "numeric",
     weekday: "long",
   });
+}
+
+function calculateDailyScore(products, quality, errors) {
+  const productsWeight = 0.4;
+  const qualityWeight = 0.5;
+  const errorsWeight = 0.1;
+
+  const productsScore = products * productsWeight;
+  const qualityScore = quality * qualityWeight;
+  const errorsScore = -(errors * errorsWeight);
+
+  const totalScore = Math.max(0, productsScore + qualityScore + errorsScore);
+
+  return Math.min(100, totalScore);
 }

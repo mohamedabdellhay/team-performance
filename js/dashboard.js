@@ -1,7 +1,7 @@
 // Global variables
 let allRecords = [];
 let filteredRecords = [];
-let productivityChart, qualityChart, errorChart, trendChart;
+let productivityChart, qualityChart, errorChart, trendChart, dailyScoreChart;
 let currentSort = { column: "date", direction: "desc" };
 let currentPage = 1;
 const recordsPerPage = 10;
@@ -34,6 +34,11 @@ function handleFileUpload(event) {
           // Add filename to each record for tracking
           const recordsWithSource = data.map((record) => ({
             ...record,
+            dailyScore: calculateDailyScore(
+              record.products,
+              record.quality,
+              record.errors
+            ),
             _sourceFile: file.name,
           }));
           allRecords = allRecords.concat(recordsWithSource);
@@ -192,7 +197,13 @@ function updateCharts() {
   const dates = [...new Set(filteredRecords.map((r) => r.date))].sort();
 
   // Destroy existing charts if they exist
-  [productivityChart, qualityChart, errorChart, trendChart].forEach((chart) => {
+  [
+    productivityChart,
+    qualityChart,
+    errorChart,
+    trendChart,
+    dailyScoreChart,
+  ].forEach((chart) => {
     if (chart) chart.destroy();
   });
 
@@ -388,6 +399,229 @@ function updateCharts() {
       },
     },
   });
+  // const labels = allRecords.map((d) => d.date);
+  // const dailyScores = allRecords.map((d) => d.dailyScore);
+  // dailyScoreChart = new Chart(
+  //   document.getElementById("dailyScoreChart").getContext("2d"),
+  //   {
+  //     type: "line",
+  //     data: {
+  //       labels: labels,
+  //       datasets: [
+  //         {
+  //           label: "Daily Score",
+  //           data: dailyScores,
+  //           borderColor: "#4CAF50",
+  //           backgroundColor: "rgba(76, 175, 80, 0.2)",
+  //           tension: 0.3,
+  //           fill: true,
+  //           pointRadius: 4,
+  //           pointBackgroundColor: "#4CAF50",
+  //         },
+  //       ],
+  //     },
+  //     options: {
+  //       responsive: true,
+  //       plugins: {
+  //         title: {
+  //           display: false,
+  //         },
+  //         legend: {
+  //           display: false,
+  //         },
+  //         tooltip: {
+  //           callbacks: {
+  //             label: (ctx) => `Score: ${ctx.raw}`,
+  //           },
+  //         },
+  //       },
+  //       scales: {
+  //         y: {
+  //           beginAtZero: true,
+  //           max: 100,
+  //           title: {
+  //             display: true,
+  //             text: "Score",
+  //           },
+  //         },
+  //         x: {
+  //           title: {
+  //             display: true,
+  //             text: "Date",
+  //           },
+  //         },
+  //       },
+  //     },
+  //   }
+  // );
+  // createEmployeePerformanceChart();
+
+  // 1. نحصل على أسماء الموظفين الفريدين
+  // const employees = [...new Set(performanceData.map((d) => d.member))];
+
+  // 2. نحضر تواريخ الأيام
+  // const labels = allRecords.map((d) => d.date);
+
+  // 3. نحضر السكور لكل موظف
+  // const datasets = employees.map((employee) => {
+  //   const employeeData = allRecords.filter((d) => d.member === employee);
+  //   const employeeScores = labels.map((date) => {
+  //     const record = employeeData.find((d) => d.date === date);
+  //     return record ? record.dailyScore : 0; // لو مفيش سكور، نخليها صفر
+  //   });
+
+  //   return {
+  //     label: employee,
+  //     data: employeeScores,
+  //     borderColor: getRandomColor(), // اختار لون عشوائي أو ثابت
+  //     backgroundColor: getRandomColor(0.2),
+  //     tension: 0.3,
+  //     fill: false,
+  //     pointRadius: 4,
+  //     pointBackgroundColor: getRandomColor(),
+  //   };
+  // });
+
+  // // دالة لاختيار لون عشوائي
+  // function getRandomColor(alpha = 1) {
+  //   const letters = "0123456789ABCDEF";
+  //   let color = "#";
+  //   for (let i = 0; i < 6; i++) {
+  //     color += letters[Math.floor(Math.random() * 16)];
+  //   }
+  //   return `rgba(${parseInt(color.slice(1, 3), 16)}, ${parseInt(
+  //     color.slice(3, 5),
+  //     16
+  //   )}, ${parseInt(color.slice(5, 7), 16)}, ${alpha})`;
+  // }
+
+  // // 4. إنشاء الجراف
+  // dailyScoreChart = new Chart(
+  //   document.getElementById("dailyScoreChart").getContext("2d"),
+  //   {
+  //     type: "line",
+  //     data: {
+  //       labels, // التواريخ
+  //       datasets, // البيانات لكل موظف
+  //     },
+  //     options: {
+  //       responsive: true,
+  //       plugins: {
+  //         title: {
+  //           display: false,
+  //         },
+  //         legend: {
+  //           display: true, // لو عايز تظهر الأساطير الخاصة بكل موظف
+  //         },
+  //         tooltip: {
+  //           callbacks: {
+  //             label: (ctx) => `Score: ${ctx.raw}`,
+  //           },
+  //         },
+  //       },
+  //       scales: {
+  //         y: {
+  //           beginAtZero: true,
+  //           max: 100,
+  //           title: {
+  //             display: true,
+  //             text: "Score",
+  //           },
+  //         },
+  //         x: {
+  //           title: {
+  //             display: true,
+  //             text: "Date",
+  //           },
+  //         },
+  //       },
+  //     },
+  //   }
+  // );
+
+  // 1. نحصل على أسماء الموظفين الفريدين
+  const employeesNames = [...new Set(allRecords.map((d) => d.member))];
+
+  // 2. نحضر التواريخ و نرتبها من الأقدم للأحدث
+  const labels = [...new Set(allRecords.map((d) => d.date))]; // نحصل على التواريخ الفريدة
+  labels.sort((a, b) => new Date(a) - new Date(b)); // ترتيب التواريخ من الأقدم للأحدث
+
+  // 3. نحضر السكور لكل موظف مرتب حسب التواريخ
+  const datasets = employeesNames.map((employee) => {
+    const employeeData = allRecords.filter((d) => d.member === employee);
+    const employeeScores = labels.map((date) => {
+      const record = employeeData.find((d) => d.date === date);
+      return record ? record.dailyScore : 0; // لو مفيش سكور، نخليها صفر
+    });
+
+    return {
+      label: employee,
+      data: employeeScores,
+      borderColor: getRandomColor(), // اختار لون عشوائي أو ثابت
+      backgroundColor: getRandomColor(0.2),
+      tension: 0.3,
+      fill: false,
+      pointRadius: 4,
+      pointBackgroundColor: getRandomColor(),
+    };
+  });
+
+  // دالة لاختيار لون عشوائي
+  function getRandomColor(alpha = 1) {
+    const letters = "0123456789ABCDEF";
+    let color = "#";
+    for (let i = 0; i < 6; i++) {
+      color += letters[Math.floor(Math.random() * 16)];
+    }
+    return `rgba(${parseInt(color.slice(1, 3), 16)}, ${parseInt(
+      color.slice(3, 5),
+      16
+    )}, ${parseInt(color.slice(5, 7), 16)}, ${alpha})`;
+  }
+
+  // 4. إنشاء الجراف
+  dailyScoreChart = new Chart(
+    document.getElementById("dailyScoreChart").getContext("2d"),
+    {
+      type: "line",
+      data: {
+        labels, // التواريخ المرتبة
+        datasets, // البيانات لكل موظف
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          title: {
+            display: false,
+          },
+          legend: {
+            display: true, // لو عايز تظهر الأساطير الخاصة بكل موظف
+          },
+          tooltip: {
+            callbacks: {
+              label: (ctx) => `Score: ${ctx.raw}`,
+            },
+          },
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            max: 100,
+            title: {
+              display: true,
+              text: "Score",
+            },
+          },
+          x: {
+            title: {
+              display: true,
+              text: "Date",
+            },
+          },
+        },
+      },
+    }
+  );
 }
 
 function sortTable(column) {
@@ -551,3 +785,208 @@ function changePage(page) {
     behavior: "smooth",
   });
 }
+
+function calculateDailyScore(products, quality, errors) {
+  const qualityWeight = 0.5;
+  const errorsWeight = 0.1;
+  const baseWeight = 0.4;
+
+  const maxQuality = 10;
+
+  if (products === 0) return 0;
+
+  const qualityPerProduct = quality / maxQuality;
+  const errorPenaltyPerProduct = errors / products;
+
+  const scorePerProduct =
+    baseWeight +
+    qualityPerProduct * qualityWeight -
+    errorPenaltyPerProduct * errorsWeight;
+
+  const rawScore = scorePerProduct * products;
+
+  // نحسب أقصى سكور ممكن بنفس عدد المنتجات
+  const maxScorePerProduct = baseWeight + 1 * qualityWeight - 0 * errorsWeight;
+  const maxPossibleScore = maxScorePerProduct * products;
+
+  const percentageScore = (rawScore / maxPossibleScore) * 100;
+
+  return Math.round(Math.max(0, Math.min(100, percentageScore)));
+}
+
+console.log("kh", calculateDailyScore(30, 9, 9));
+
+/*
+
+[
+    {
+        "date": "2025-04-10",
+        "member": "Khalid",
+        "products": 30,
+        "quality": 9,
+        "errors": 9,
+        "dailyScore": 91,
+        "_sourceFile": "Employee-Performance-2025-04-10.json"
+    },
+    {
+        "date": "2025-04-10",
+        "member": "Sherif",
+        "products": 33,
+        "quality": 8,
+        "errors": 9,
+        "dailyScore": 86,
+        "_sourceFile": "Employee-Performance-2025-04-10.json"
+    },
+    {
+        "date": "2025-04-10",
+        "member": "Gohary",
+        "products": 34,
+        "quality": 9,
+        "errors": 1,
+        "dailyScore": 94,
+        "_sourceFile": "Employee-Performance-2025-04-10.json"
+    },
+    {
+        "date": "2025-04-10",
+        "member": "Lamees",
+        "products": 28,
+        "quality": 9,
+        "errors": 2,
+        "dailyScore": 94,
+        "_sourceFile": "Employee-Performance-2025-04-10.json"
+    },
+    {
+        "date": "2025-04-10",
+        "member": "Shreen",
+        "products": 30,
+        "quality": 10,
+        "errors": 0,
+        "dailyScore": 100,
+        "_sourceFile": "Employee-Performance-2025-04-10.json"
+    }
+]
+*/
+
+// function createEmployeePerformanceChart() {
+//   // تجميع بيانات الموظفين
+//   const employees = [...new Set(allRecords.map((record) => record.member))];
+
+//   // إعداد بيانات لكل موظف
+//   const datasets = employees.map((employee) => {
+//     const employeeRecords = allRecords
+//       .filter((r) => r.member === employee)
+//       .sort((a, b) => new Date(a.date) - new Date(b.date));
+
+//     return {
+//       label: employee,
+//       data: allRecords.map((record) =>
+//         record.member === employee ? record.dailyScore : null
+//       ),
+//       borderColor: getEmployeeColor(employee),
+//       backgroundColor: "rgba(255, 255, 255, 0.1)",
+//       borderWidth: 2,
+//       tension: 0.3,
+//       pointRadius: 4,
+//       pointHoverRadius: 6,
+//       fill: false,
+//     };
+//   });
+
+//   // إنشاء الرسم البياني
+//   const ctx = document.getElementById("performanceChart").getContext("2d");
+//   return new Chart(ctx, {
+//     type: "line",
+//     data: {
+//       labels: allRecords.map((r) => r.date),
+//       datasets: datasets,
+//     },
+//     options: {
+//       responsive: true,
+//       maintainAspectRatio: false,
+//       plugins: {
+//         title: {
+//           display: true,
+//           text: "Employee Performance Trends",
+//           font: { size: 18 },
+//         },
+//         tooltip: {
+//           callbacks: {
+//             label: function (context) {
+//               const record = allRecords.find(
+//                 (r) =>
+//                   r.member === context.dataset.label && r.date === context.label
+//               );
+//               return [
+//                 `Employee: ${context.dataset.label}`,
+//                 `Date: ${context.label}`,
+//                 `Score: ${context.raw}`,
+//                 `Products: ${record.products}`,
+//                 `Quality: ${record.quality}/10`,
+//                 `Errors: ${record.errors}`,
+//               ];
+//             },
+//             footer: (context) => {
+//               const score = context[0].raw;
+//               if (score >= 90) return "🌟 Excellent Performance";
+//               if (score >= 75) return "👍 Good Performance";
+//               if (score >= 60) return "✔️ Average Performance";
+//               return "⚠️ Needs Improvement";
+//             },
+//           },
+//         },
+//         legend: {
+//           position: "top",
+//           labels: {
+//             boxWidth: 12,
+//             padding: 20,
+//             font: { size: 12 },
+//           },
+//         },
+//       },
+//       scales: {
+//         y: {
+//           beginAtZero: true,
+//           max: 100,
+//           title: {
+//             display: true,
+//             text: "Performance Score",
+//             font: { weight: "bold" },
+//           },
+//           grid: {
+//             color: "rgba(0, 0, 0, 0.05)",
+//           },
+//         },
+//         x: {
+//           title: {
+//             display: true,
+//             text: "Date",
+//             font: { weight: "bold" },
+//           },
+//           grid: {
+//             display: false,
+//           },
+//         },
+//       },
+//       interaction: {
+//         intersect: false,
+//         mode: "index",
+//       },
+//     },
+//   });
+// }
+
+// // دالة مساعدة لإعطاء ألوان ثابتة لكل موظف
+// function getEmployeeColor(employee) {
+//   const colors = [
+//     "#3498db",
+//     "#e74c3c",
+//     "#2ecc71",
+//     "#f39c12",
+//     "#9b59b6",
+//     "#1abc9c",
+//     "#d35400",
+//     "#34495e",
+//   ];
+//   const index = [...new Set(allRecords.map((r) => r.member))].indexOf(employee);
+//   return colors[index % colors.length];
+// }

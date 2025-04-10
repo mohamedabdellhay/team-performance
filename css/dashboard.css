@@ -285,3 +285,15 @@ tr:hover {
     font-size: 13px;
   }
 }
+
+.charts-container {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+  column-gap: 20px;
+  row-gap: 60px;
+}
+
+.last-chart {
+  grid-column: span 2;
+}
