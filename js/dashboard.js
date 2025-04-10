@@ -399,166 +399,45 @@ function updateCharts() {
       },
     },
   });
-  // const labels = allRecords.map((d) => d.date);
-  // const dailyScores = allRecords.map((d) => d.dailyScore);
-  // dailyScoreChart = new Chart(
-  //   document.getElementById("dailyScoreChart").getContext("2d"),
-  //   {
-  //     type: "line",
-  //     data: {
-  //       labels: labels,
-  //       datasets: [
-  //         {
-  //           label: "Daily Score",
-  //           data: dailyScores,
-  //           borderColor: "#4CAF50",
-  //           backgroundColor: "rgba(76, 175, 80, 0.2)",
-  //           tension: 0.3,
-  //           fill: true,
-  //           pointRadius: 4,
-  //           pointBackgroundColor: "#4CAF50",
-  //         },
-  //       ],
-  //     },
-  //     options: {
-  //       responsive: true,
-  //       plugins: {
-  //         title: {
-  //           display: false,
-  //         },
-  //         legend: {
-  //           display: false,
-  //         },
-  //         tooltip: {
-  //           callbacks: {
-  //             label: (ctx) => `Score: ${ctx.raw}`,
-  //           },
-  //         },
-  //       },
-  //       scales: {
-  //         y: {
-  //           beginAtZero: true,
-  //           max: 100,
-  //           title: {
-  //             display: true,
-  //             text: "Score",
-  //           },
-  //         },
-  //         x: {
-  //           title: {
-  //             display: true,
-  //             text: "Date",
-  //           },
-  //         },
-  //       },
-  //     },
-  //   }
-  // );
-  // createEmployeePerformanceChart();
 
-  // 1. نحصل على أسماء الموظفين الفريدين
-  // const employees = [...new Set(performanceData.map((d) => d.member))];
-
-  // 2. نحضر تواريخ الأيام
-  // const labels = allRecords.map((d) => d.date);
-
-  // 3. نحضر السكور لكل موظف
-  // const datasets = employees.map((employee) => {
-  //   const employeeData = allRecords.filter((d) => d.member === employee);
-  //   const employeeScores = labels.map((date) => {
-  //     const record = employeeData.find((d) => d.date === date);
-  //     return record ? record.dailyScore : 0; // لو مفيش سكور، نخليها صفر
-  //   });
-
-  //   return {
-  //     label: employee,
-  //     data: employeeScores,
-  //     borderColor: getRandomColor(), // اختار لون عشوائي أو ثابت
-  //     backgroundColor: getRandomColor(0.2),
-  //     tension: 0.3,
-  //     fill: false,
-  //     pointRadius: 4,
-  //     pointBackgroundColor: getRandomColor(),
-  //   };
-  // });
-
-  // // دالة لاختيار لون عشوائي
-  // function getRandomColor(alpha = 1) {
-  //   const letters = "0123456789ABCDEF";
-  //   let color = "#";
-  //   for (let i = 0; i < 6; i++) {
-  //     color += letters[Math.floor(Math.random() * 16)];
-  //   }
-  //   return `rgba(${parseInt(color.slice(1, 3), 16)}, ${parseInt(
-  //     color.slice(3, 5),
-  //     16
-  //   )}, ${parseInt(color.slice(5, 7), 16)}, ${alpha})`;
-  // }
-
-  // // 4. إنشاء الجراف
-  // dailyScoreChart = new Chart(
-  //   document.getElementById("dailyScoreChart").getContext("2d"),
-  //   {
-  //     type: "line",
-  //     data: {
-  //       labels, // التواريخ
-  //       datasets, // البيانات لكل موظف
-  //     },
-  //     options: {
-  //       responsive: true,
-  //       plugins: {
-  //         title: {
-  //           display: false,
-  //         },
-  //         legend: {
-  //           display: true, // لو عايز تظهر الأساطير الخاصة بكل موظف
-  //         },
-  //         tooltip: {
-  //           callbacks: {
-  //             label: (ctx) => `Score: ${ctx.raw}`,
-  //           },
-  //         },
-  //       },
-  //       scales: {
-  //         y: {
-  //           beginAtZero: true,
-  //           max: 100,
-  //           title: {
-  //             display: true,
-  //             text: "Score",
-  //           },
-  //         },
-  //         x: {
-  //           title: {
-  //             display: true,
-  //             text: "Date",
-  //           },
-  //         },
-  //       },
-  //     },
-  //   }
-  // );
-
-  // 1. نحصل على أسماء الموظفين الفريدين
+  // get employees names
   const employeesNames = [...new Set(allRecords.map((d) => d.member))];
 
-  // 2. نحضر التواريخ و نرتبها من الأقدم للأحدث
-  const labels = [...new Set(allRecords.map((d) => d.date))]; // نحصل على التواريخ الفريدة
-  labels.sort((a, b) => new Date(a) - new Date(b)); // ترتيب التواريخ من الأقدم للأحدث
+  // get all records
+  const labels = [...new Set(allRecords.map((d) => d.date))]; // unique dates
+  labels.sort((a, b) => new Date(a) - new Date(b)); // sort dates
 
-  // 3. نحضر السكور لكل موظف مرتب حسب التواريخ
-  const datasets = employeesNames.map((employee) => {
+  // get all records
+  const datasets = employeesNames.map((employee, i) => {
     const employeeData = allRecords.filter((d) => d.member === employee);
     const employeeScores = labels.map((date) => {
       const record = employeeData.find((d) => d.date === date);
-      return record ? record.dailyScore : 0; // لو مفيش سكور، نخليها صفر
+      return record ? record.dailyScore : 0;
     });
 
     return {
       label: employee,
       data: employeeScores,
-      borderColor: getRandomColor(), // اختار لون عشوائي أو ثابت
-      backgroundColor: getRandomColor(0.2),
+      borderColor: [
+        "#e74c3c",
+        "#3498db",
+        "#f39c12",
+        "#2ecc71",
+        "#9b59b6",
+        "#1abc9c",
+        "#d35400",
+        "#34495e",
+      ][i % 8],
+      backgroundColor: [
+        "#e74c3c",
+        "#3498db",
+        "#f39c12",
+        "#2ecc71",
+        "#9b59b6",
+        "#1abc9c",
+        "#d35400",
+        "#34495e",
+      ][i % 8],
       tension: 0.3,
       fill: false,
       pointRadius: 4,
@@ -566,7 +445,7 @@ function updateCharts() {
     };
   });
 
-  // دالة لاختيار لون عشوائي
+  // get random color
   function getRandomColor(alpha = 1) {
     const letters = "0123456789ABCDEF";
     let color = "#";
@@ -579,14 +458,14 @@ function updateCharts() {
     )}, ${parseInt(color.slice(5, 7), 16)}, ${alpha})`;
   }
 
-  // 4. إنشاء الجراف
+  // create daily score chart
   dailyScoreChart = new Chart(
     document.getElementById("dailyScoreChart").getContext("2d"),
     {
       type: "line",
       data: {
-        labels, // التواريخ المرتبة
-        datasets, // البيانات لكل موظف
+        labels,
+        datasets,
       },
       options: {
         responsive: true,
@@ -595,7 +474,7 @@ function updateCharts() {
             display: false,
           },
           legend: {
-            display: true, // لو عايز تظهر الأساطير الخاصة بكل موظف
+            display: true,
           },
           tooltip: {
             callbacks: {
