@@ -684,7 +684,7 @@ function calculateDailyScore(products, quality, errors) {
 
   const rawScore = scorePerProduct * products;
 
-  // نحسب أقصى سكور ممكن بنفس عدد المنتجات
+  // Ensure the score is not negative
   const maxScorePerProduct = baseWeight + 1 * qualityWeight - 0 * errorsWeight;
   const maxPossibleScore = maxScorePerProduct * products;
 
@@ -692,8 +692,6 @@ function calculateDailyScore(products, quality, errors) {
 
   return Math.round(Math.max(0, Math.min(100, percentageScore)));
 }
-
-console.log("kh", calculateDailyScore(30, 9, 9));
 
 /*
 

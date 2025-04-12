@@ -16,7 +16,16 @@ function addRecord() {
   const member = document.getElementById("member").value;
   const products = parseInt(document.getElementById("products").value);
   const quality = parseInt(document.getElementById("quality").value);
+  const note = document.getElementById("note").value.trim();
   const errors = parseInt(document.getElementById("errors").value);
+  const errorCategory =
+    document.getElementById("errorCategory").value == "null"
+      ? null
+      : document.getElementById("errorCategory").value;
+  const errorDescription =
+    document.getElementById("note").value.trim().length > 0 ? note : null;
+  const dailyScore = calculateDailyScore(products, quality, errors);
+  console.log(dailyScore);
 
   // Validate inputs
   if (!date) {
@@ -39,47 +48,122 @@ function addRecord() {
     return;
   }
 
+  // Check if the record already exists
+  const existingRecord = currentRecords.find(
+    (rec) => rec.date === date && rec.member === member
+  );
+  if (existingRecord) {
+    const confirmUpdate = confirm(
+      `Record for ${member} already exists for this employee, do you want to update it?`
+    );
+    if (confirmUpdate) {
+      currentRecords = currentRecords.filter(
+        (rec) => !(rec.date === date && rec.member === member)
+      );
+      currentRecords.push({
+        date,
+        member,
+        products,
+        quality,
+        errors,
+        errorCategory,
+        errorDescription,
+        dailyScore,
+      });
+      editingIndex = null;
+      currentEditingDate = null;
+      showRecords();
+      clearForm();
+      console.log(currentRecords);
+      return;
+    }
+
+    return;
+  }
+
+  // Check if the date is in the future
   if (editingIndex !== null && currentEditingDate === date) {
     // Update existing record
-    currentRecords[editingIndex] = { date, member, products, quality, errors };
+    currentRecords[editingIndex] = {
+      date,
+      member,
+      products,
+      quality,
+      errors,
+      errorCategory,
+      errorDescription,
+      dailyScore,
+    };
   } else {
     // Add new record
-    currentRecords.push({ date, member, products, quality, errors });
+    currentRecords.push({
+      date,
+      member,
+      products,
+      quality,
+      errors,
+      errorCategory,
+      errorDescription,
+      dailyScore,
+    });
   }
 
   editingIndex = null;
   currentEditingDate = null;
   showRecords();
   clearForm();
+  console.log(currentRecords);
 }
 
 function editRecord(index) {
-  const record = currentRecords[index];
+  const confirmLayer = document.getElementById("overlay-edit");
+  confirmLayer.style.display = "flex";
+  const confirmButton = document.getElementById("confirmEdit");
+  const cancelButton = document.getElementById("cancelEdit");
 
-  // Store original date before editing
-  currentEditingDate = record.date;
+  confirmButton.onclick = function () {
+    // Store original date before editing
+    const record = currentRecords[index];
+    currentEditingDate = record.date;
 
-  document.getElementById("date").value = record.date;
-  document.getElementById("member").value = record.member;
-  document.getElementById("products").value = record.products;
-  document.getElementById("quality").value = record.quality;
-  document.getElementById("errors").value = record.errors;
+    document.getElementById("date").value = record.date;
+    document.getElementById("member").value = record.member;
+    document.getElementById("products").value = record.products;
+    document.getElementById("quality").value = record.quality;
+    document.getElementById("errors").value = record.errors;
+    document.getElementById("errorCategory").value = record.errorCategory;
+    document.getElementById("note").value = record.errorDescription || "";
 
-  editingIndex = index;
-  document.getElementById("addButton").textContent = "Update Record";
+    editingIndex = index;
+    document.getElementById("addButton").textContent = "Update Record";
 
-  // Highlight the record being edited
-  showRecords();
+    // Highlight the record being edited
+    showRecords();
 
-  // Scroll to form
-  document.getElementById("date").scrollIntoView({ behavior: "smooth" });
+    // Scroll to form
+    document.getElementById("date").scrollIntoView({ behavior: "smooth" });
+    confirmLayer.style.display = "none";
+  };
+  cancelButton.onclick = function () {
+    confirmLayer.style.display = "none";
+    return;
+  };
 }
 
 function deleteRecord(index) {
-  if (confirm("Are you sure you want to delete this record?")) {
+  const confirmLayer = document.getElementById("overlay-deletion");
+  confirmLayer.style.display = "flex";
+  const confirmButton = document.getElementById("confirmDelete");
+  const cancelButton = document.getElementById("cancelDelete");
+
+  confirmButton.onclick = function () {
     currentRecords.splice(index, 1);
     showRecords();
-  }
+    confirmLayer.style.display = "none";
+  };
+  cancelButton.onclick = function () {
+    confirmLayer.style.display = "none";
+  };
 }
 
 function showRecords() {
@@ -169,6 +253,8 @@ function clearForm() {
   document.getElementById("quality").value = "";
   document.getElementById("errors").value = "";
   document.getElementById("addButton").textContent = "Add Record";
+  document.getElementById("errorCategory").value = "none";
+  document.getElementById("note").value = "";
 
   // Reset to today's date if not editing
   if (editingIndex === null) {
@@ -207,33 +293,44 @@ function downloadJSON() {
 
 function handleFileUpload(files) {
   if (files.length === 0) return;
+  const overlay = document.getElementById("overlay-upload");
+  const confirmButton = document.getElementById("confirmUpload");
+  const cancelButton = document.getElementById("cancelUpload");
 
-  const file = files[0];
-  const reader = new FileReader();
+  overlay.style.display = "flex";
+  confirmButton.addEventListener("click", () => {
+    const file = files[0];
+    const reader = new FileReader();
 
-  reader.onload = function (e) {
-    try {
-      const data = JSON.parse(e.target.result);
-      if (Array.isArray(data)) {
-        currentRecords = data;
-        if (currentRecords.length > 0) {
-          document.getElementById("date").value = currentRecords[0].date;
+    reader.onload = function (e) {
+      try {
+        const data = JSON.parse(e.target.result);
+        if (Array.isArray(data)) {
+          currentRecords = data;
+          if (currentRecords.length > 0) {
+            document.getElementById("date").value = currentRecords[0].date;
+          }
+          showRecords();
+          // alert(
+          //   `Successfully loaded ${data.length} record${
+          //     data.length > 1 ? "s" : ""
+          //   }`
+          // );
+        } else {
+          alert("Invalid file format: Must contain an array of records");
         }
-        showRecords();
-        alert(
-          `Successfully loaded ${data.length} record${
-            data.length > 1 ? "s" : ""
-          }`
-        );
-      } else {
-        alert("Invalid file format: Must contain an array of records");
+      } catch (error) {
+        alert("Error reading file: " + error.message);
       }
-    } catch (error) {
-      alert("Error reading file: " + error.message);
-    }
-  };
+    };
 
-  reader.readAsText(file);
+    reader.readAsText(file);
+    overlay.style.display = "none";
+  });
+  cancelButton.addEventListener("click", () => {
+    overlay.style.display = "none";
+    return;
+  });
 }
 
 function formatDate(dateString) {
@@ -246,16 +343,43 @@ function formatDate(dateString) {
   });
 }
 
+// function calculateDailyScore(products, quality, errors) {
+//   const productsWeight = 0.4;
+//   const qualityWeight = 0.5;
+//   const errorsWeight = 0.1;
+
+//   const productsScore = products * productsWeight;
+//   const qualityScore = quality * qualityWeight;
+//   const errorsScore = -(errors * errorsWeight);
+
+//   const totalScore = Math.max(0, productsScore + qualityScore + errorsScore);
+
+//   return Math.min(100, totalScore);
+// }
 function calculateDailyScore(products, quality, errors) {
-  const productsWeight = 0.4;
   const qualityWeight = 0.5;
   const errorsWeight = 0.1;
+  const baseWeight = 0.4;
 
-  const productsScore = products * productsWeight;
-  const qualityScore = quality * qualityWeight;
-  const errorsScore = -(errors * errorsWeight);
+  const maxQuality = 10;
 
-  const totalScore = Math.max(0, productsScore + qualityScore + errorsScore);
+  if (products === 0) return 0;
 
-  return Math.min(100, totalScore);
+  const qualityPerProduct = quality / maxQuality;
+  const errorPenaltyPerProduct = errors / products;
+
+  const scorePerProduct =
+    baseWeight +
+    qualityPerProduct * qualityWeight -
+    errorPenaltyPerProduct * errorsWeight;
+
+  const rawScore = scorePerProduct * products;
+
+  // Ensure the score is not negative
+  const maxScorePerProduct = baseWeight + 1 * qualityWeight - 0 * errorsWeight;
+  const maxPossibleScore = maxScorePerProduct * products;
+
+  const percentageScore = (rawScore / maxPossibleScore) * 100;
+
+  return Math.round(Math.max(0, Math.min(100, percentageScore)));
 }
