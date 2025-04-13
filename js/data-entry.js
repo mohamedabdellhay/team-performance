@@ -400,3 +400,15 @@ function calculateDailyScore(products, quality, errors) {
 
   return Math.round(Math.max(0, Math.min(100, percentageScore)));
 }
+
+// update placeholder for note-field
+const noteField = document.getElementById("note");
+const memberField = document.getElementById("member");
+const qualityField = document.getElementById("quality");
+memberField.addEventListener("change", function () {
+  console.log(memberField.value);
+  noteField.placeholder = `write a helpful note to support ${memberField.value} in enhancing their performance.`;
+  qualityField.placeholder = `Rate ${memberField.value}'s Quality from 1 to 10, be honest`;
+  noteField.value = "";
+  qualityField.value = "";
+});
