@@ -200,6 +200,7 @@ function showRecords() {
       recordsByDate[date].length > 1 ? "s" : ""
     }</span>
                         </div>
+                  
                 `;
 
     recordsByDate[date].forEach((record) => {
@@ -236,6 +237,22 @@ function showRecords() {
                                 <div>
                                     <span>Errors</span>
                                     <span>${record.errors}</span>
+                                </div>
+                                 <div>
+                                    <span>Error Category</span>
+                                    <span>${
+                                      record?.errorCategory
+                                        ? record.errorCategory
+                                        : "null"
+                                    }</span>
+                                </div>
+                                <div>
+                                    <span>Error Description</span>
+                                    <span>${
+                                      record?.errorDescription
+                                        ? record.errorDescription
+                                        : "null"
+                                    }</span>
                                 </div>
                             </div>
                         </div>

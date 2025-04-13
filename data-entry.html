@@ -10,81 +10,83 @@
 
 <body>
     <div class="container">
-        <h1>Employee Performance Tracking System</h1>
-
-        <div class="flex-row">
-            <button class="btn-primary" onclick="document.getElementById('fileInput').click()">
-                <span>Upload Previous Day File</span>
-            </button>
-            <input type="file" id="fileInput" accept=".json" onchange="handleFileUpload(this.files)" />
-            <button class="btn-success" onclick="downloadJSON()">
-                <span>Download Today's Data</span>
-            </button>
-        </div>
-
-        <div class="form-group">
-            <label>Date</label>
-            <input type="date" id="date" />
-        </div>
-
-        <div class="form-group">
-            <label>Employee</label>
-            <select id="member">
-                <option value="Khalid">Khalid</option>
-                <option value="Sherif">Sherif</option>
-                <option value="Gohary">Gohary</option>
-                <option value="Lamees">Lamees</option>
-                <option value="Shreen">Shreen</option>
-            </select>
-        </div>
-
         <div>
-            <div class="grid col-2 gap-20">
-                <div class="form-group">
-                    <label>Number of Products</label>
-                    <input type="number" id="products" min="0" />
-                </div>
-                <div class="form-group">
-                    <label>Quality Rating (1-10)</label>
-                    <input type="number" id="quality" min="1" max="10" />
-                </div>
-                <div class="form-group">
-                    <label>Number of Errors</label>
-                    <input type="number" id="errors" min="0" />
-                </div>
-                <!-- <div class="form-group">
-                        
-                        <label>Add Notes</label>
-                        <div>
-                            <label class="switch">
-                                <input type="checkbox">
-                                <span class="slider"></span>
-                            </label>
-                        </div>
-                    </div> -->
-                <div class="form-group">
-                    <label>Error Category</label>
-                    <select id="errorCategory">
-                        <option value="null">Chose Error Type</option>
-                        <option value="category">Category</option>
-                        <option value="brand">Brand</option>
-                        <option value="models">Models</option>
-                        <option value="spaces">Spaces</option>
-                        <option value="tool-problim">Tool Problim</option>
-                        <option value="spelling-errors">Spelling errors</option>
-                        <option value="Incomplete-data">Incomplete data</option>
-                    </select>
-                </div>
-            </div>
-            <div class="form-group">
-                <label>Note</label>
-                <input type="text" id="note" />
-            </div>
-        </div>
+            <h1>Employee Performance Tracking System</h1>
 
-        <button class="btn-success" id="addButton" onclick="addRecord()">
-            <span>Add Record</span>
-        </button>
+            <div class="flex-row">
+                <button class="btn-primary" onclick="document.getElementById('fileInput').click()">
+                    <span>Upload Previous Day File</span>
+                </button>
+                <input type="file" id="fileInput" accept=".json" onchange="handleFileUpload(this.files)" />
+                <button class="btn-success" onclick="downloadJSON()">
+                    <span>Download Today's Data</span>
+                </button>
+            </div>
+
+            <div class="form-group">
+                <label>Date</label>
+                <input type="date" id="date" />
+            </div>
+
+            <div class="form-group">
+                <label>Employee</label>
+                <select id="member">
+                    <option value="Khalid">Khalid</option>
+                    <option value="Sherif">Sherif</option>
+                    <option value="Gohary">Gohary</option>
+                    <option value="Lamees">Lamees</option>
+                    <option value="Shreen">Shreen</option>
+                </select>
+            </div>
+
+            <div>
+                <div class="grid col-2 gap-20">
+                    <div class="form-group">
+                        <label>Number of Products</label>
+                        <input type="number" id="products" min="0" />
+                    </div>
+                    <div class="form-group">
+                        <label>Quality Rating (1-10)</label>
+                        <input type="number" id="quality" min="1" max="10" />
+                    </div>
+                    <div class="form-group">
+                        <label>Number of Errors</label>
+                        <input type="number" id="errors" min="0" />
+                    </div>
+                    <!-- <div class="form-group">
+                                    
+                                    <label>Add Notes</label>
+                                    <div>
+                                        <label class="switch">
+                                            <input type="checkbox">
+                                            <span class="slider"></span>
+                                        </label>
+                                    </div>
+                                </div> -->
+                    <div class="form-group">
+                        <label>Error Category</label>
+                        <select id="errorCategory">
+                            <option value="null">Chose Error Type</option>
+                            <option value="category">Category</option>
+                            <option value="brand">Brand</option>
+                            <option value="models">Models</option>
+                            <option value="spaces">Spaces</option>
+                            <option value="tool-problim">Tool Problim</option>
+                            <option value="spelling-errors">Spelling errors</option>
+                            <option value="Incomplete-data">Incomplete data</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Note</label>
+                    <input type="text" id="note" />
+                </div>
+            </div>
+
+            <button class="btn-success" id="addButton" onclick="addRecord()">
+                <span>Add Record</span>
+            </button>
+        </div>
 
         <div class="records-container" id="output">
             <div class="empty-state">
