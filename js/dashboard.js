@@ -412,7 +412,11 @@ function updateCharts() {
     const employeeData = allRecords.filter((d) => d.member === employee);
     const employeeScores = labels.map((date) => {
       const record = employeeData.find((d) => d.date === date);
-      return record ? record.dailyScore : 0;
+      return record
+        ? record.dailyScore - 5 > 0
+          ? record.dailyScore - 5
+          : 0
+        : 0;
     });
 
     return {
@@ -441,22 +445,22 @@ function updateCharts() {
       tension: 0.3,
       fill: false,
       pointRadius: 4,
-      pointBackgroundColor: getRandomColor(),
+      pointHoverRadius: 6,
     };
   });
 
   // get random color
-  function getRandomColor(alpha = 1) {
-    const letters = "0123456789ABCDEF";
-    let color = "#";
-    for (let i = 0; i < 6; i++) {
-      color += letters[Math.floor(Math.random() * 16)];
-    }
-    return `rgba(${parseInt(color.slice(1, 3), 16)}, ${parseInt(
-      color.slice(3, 5),
-      16
-    )}, ${parseInt(color.slice(5, 7), 16)}, ${alpha})`;
-  }
+  // function getRandomColor(alpha = 1) {
+  //   const letters = "0123456789ABCDEF";
+  //   let color = "#";
+  //   for (let i = 0; i < 6; i++) {
+  //     color += letters[Math.floor(Math.random() * 16)];
+  //   }
+  //   return `rgba(${parseInt(color.slice(1, 3), 16)}, ${parseInt(
+  //     color.slice(3, 5),
+  //     16
+  //   )}, ${parseInt(color.slice(5, 7), 16)}, ${alpha})`;
+  // }
 
   // create daily score chart
   dailyScoreChart = new Chart(
@@ -482,13 +486,26 @@ function updateCharts() {
             },
           },
         },
+        // layout: {
+        //   padding: {
+        //     top: 20,
+        //     right: 20,
+        //     bottom: 20,
+        //     left: 20,
+        //   },
+        // },
+
         scales: {
           y: {
             beginAtZero: true,
             max: 100,
+            // suggestedMax: 105,
             title: {
               display: true,
               text: "Score",
+            },
+            ticks: {
+              stepSize: 5,
             },
           },
           x: {

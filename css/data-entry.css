@@ -359,3 +359,65 @@ input:checked + .slider:before {
 .overlay-content .close-btn:hover {
   background-color: #c0392b;
 }
+
+/* customize the select input */
+.checkbox-parent {
+  position: relative;
+}
+.error-options {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 100%;
+  background: #eee;
+  z-index: 5;
+  padding: 0 15px;
+  border-radius: 5px;
+}
+.error-category {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  padding: 5px;
+  border: 2px solid #ddd;
+  border-radius: 5px;
+  font-size: 16px;
+  transition: border 0.3s;
+  -webkit-border-radius: 5px;
+  -moz-border-radius: 5px;
+  -ms-border-radius: 5px;
+  -o-border-radius: 5px;
+}
+.d-block {
+  display: block;
+}
+
+.checkbox-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background-color: #f9f9f9;
+  transition: background-color 0.3s ease;
+  cursor: pointer;
+  margin-bottom: 5px;
+}
+
+.checkbox-option:hover {
+  background-color: #f0f0f0;
+}
+
+.checkbox-option input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+
+.checkbox-option label {
+  cursor: pointer;
+  font-size: 14px;
+  color: #333;
+  margin-bottom: 0;
+}

@@ -64,8 +64,19 @@
                                         </label>
                                     </div>
                                 </div> -->
-                    <div class="form-group">
+                    <div class="form-group checkbox-parent error-category-parent" id="errorCategory">
                         <label>Category Error</label>
+                        <span class="error-category">
+                            <span>Select Error Category</span>
+                            <span>
+                                <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960"
+                                    width="24px" fill="#434343">
+                                    <path d="M480-344 240-584l56-56 184 184 184-184 56 56-240 240Z" />
+                                </svg>
+                            </span>
+                        </span>
+                        <!-- 
+                        
                         <select id="errorCategory">
                             <option value="null">Chose Error Type</option>
                             <option value="category">Category</option>
@@ -76,7 +87,52 @@
                             <option value="spelling-errors">Spelling errors</option>
                             <option value="Incomplete-data">Incomplete data</option>
                         </select>
+                        -->
+
+                        <div class="error-options" id="errorOptions">
+                            <div style="display: flex; justify-content: flex-start; gap: 10px;" class="checkbox-option">
+                                <input type="checkbox" id="vehicle1" name="errors-type" value="Category"
+                                    style="width: auto;">
+                                <label for="vehicle1">Category</label>
+                            </div>
+                            <div style="display: flex; justify-content: flex-start; gap: 10px;" class="checkbox-option">
+                                <input type="checkbox" id="vehicle2" name="errors-type" value="Brand"
+                                    style="width: auto;">
+                                <label for="vehicle2">Brand</label>
+                            </div>
+                            <div style="display: flex; justify-content: flex-start; gap: 10px;" class="checkbox-option">
+                                <input type="checkbox" id="vehicle3" name="errors-type" value="Models"
+                                    style="width: auto;">
+                                <label for="vehicle3">Models</label>
+                            </div>
+                            <div style="display: flex; justify-content: flex-start; gap: 10px;" class="checkbox-option">
+                                <input type="checkbox" id="vehicle4" name="errors-type" value="Spaces"
+                                    style="width: auto;">
+                                <label for="vehicle4">Spaces</label>
+                            </div>
+                            <div style="display: flex; justify-content: flex-start; gap: 10px;" class="checkbox-option">
+                                <input type="checkbox" id="vehicle5" name="errors-type" value="Tool problem"
+                                    style="width: auto;">
+                                <label for="vehicle5">Tool Problem</label>
+                            </div>
+                            <div style="display: flex; justify-content: flex-start; gap: 10px;" class="checkbox-option">
+                                <input type="checkbox" id="vehicle6" name="errors-type" value="spelling errors"
+                                    style="width: auto;">
+                                <label for="vehicle6">Spelling errors</label>
+                            </div>
+                            <div style="display: flex; justify-content: flex-start; gap: 10px;" class="checkbox-option">
+                                <input type="checkbox" id="vehicle7" name="errors-type" value="Incomplete data"
+                                    style="width: auto;">
+                                <label for="vehicle7">Incomplete data</label>
+                            </div>
+                            <div style="display: flex; justify-content: flex-start; gap: 10px;" class="checkbox-option">
+                                <input type="checkbox" id="vehicle8" name="errors-type"
+                                    value="The tool has not been used" style="width: auto;">
+                                <label for="vehicle8">The tool has not been used</label>
+                            </div>
+                        </div>
                     </div>
+
                 </div>
                 <div class="form-group">
                     <label>Note-taking</label>

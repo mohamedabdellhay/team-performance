@@ -16,14 +16,20 @@ function addRecord() {
   const member = document.getElementById("member").value;
   const products = parseInt(document.getElementById("products").value);
   const quality = parseInt(document.getElementById("quality").value);
-  const note = document.getElementById("note").value.trim();
+  const notes = document.getElementById("note").value.trim();
   const errors = parseInt(document.getElementById("errors").value);
-  const errorCategory =
-    document.getElementById("errorCategory").value == "null"
-      ? null
-      : document.getElementById("errorCategory").value;
   const errorDescription =
-    document.getElementById("note").value.trim().length > 0 ? note : null;
+    notes.length > 0 ? notes.split(/،|,/).map((desc) => desc.trim()) : [];
+  console.log(errorDescription);
+  const selectedErrorsCheckboxes = document.querySelectorAll(
+    'input[name="errors-type"]:checked'
+  );
+  const errorsCategoryValues = Array.from(selectedErrorsCheckboxes).map(
+    (cb) => cb.value
+  );
+
+  // console.log("Selected values:", selectedValues);
+
   const dailyScore = calculateDailyScore(products, quality, errors);
   console.log(dailyScore);
 
@@ -66,7 +72,7 @@ function addRecord() {
         products,
         quality,
         errors,
-        errorCategory,
+        errorCategory: errorsCategoryValues,
         errorDescription,
         dailyScore,
       });
@@ -90,7 +96,7 @@ function addRecord() {
       products,
       quality,
       errors,
-      errorCategory,
+      errorCategory: errorsCategoryValues,
       errorDescription,
       dailyScore,
     };
@@ -102,7 +108,7 @@ function addRecord() {
       products,
       quality,
       errors,
-      errorCategory,
+      errorCategory: errorsCategoryValues,
       errorDescription,
       dailyScore,
     });
@@ -131,8 +137,23 @@ function editRecord(index) {
     document.getElementById("products").value = record.products;
     document.getElementById("quality").value = record.quality;
     document.getElementById("errors").value = record.errors;
-    document.getElementById("errorCategory").value = record.errorCategory;
-    document.getElementById("note").value = record.errorDescription || "";
+    // document.getElementById("errorCategory").value = record.errorCategory;
+    document.getElementById("note").value =
+      record.errorDescription?.join(", ") || "";
+    const selectedErrorsCheckboxes = document.querySelectorAll(
+      'input[name="errors-type"]'
+    );
+
+    selectedErrorsCheckboxes.forEach((checkbox) => {
+      if (
+        record.errorCategory &&
+        record.errorCategory.includes(checkbox.value)
+      ) {
+        checkbox.checked = true;
+      } else {
+        checkbox.checked = false;
+      }
+    });
 
     editingIndex = index;
     document.getElementById("addButton").textContent = "Update Record";
@@ -240,19 +261,17 @@ function showRecords() {
                                 </div>
                                  <div>
                                     <span>Error Category</span>
-                                    <span>${
-                                      record?.errorCategory
-                                        ? record.errorCategory
-                                        : "null"
-                                    }</span>
+                                    ${renderErrorsMessage(
+                                      record.errorCategory,
+                                      1
+                                    )}
                                 </div>
                                 <div>
                                     <span>Error Description</span>
-                                    <span>${
-                                      record?.errorDescription
-                                        ? record.errorDescription
-                                        : "null"
-                                    }</span>
+                                    ${renderErrorsMessage(
+                                      record.errorDescription,
+                                      2
+                                    )}
                                 </div>
                             </div>
                         </div>
@@ -412,3 +431,40 @@ memberField.addEventListener("change", function () {
   noteField.value = "";
   qualityField.value = "";
 });
+
+// display checkbox for error category
+
+// const errorCategoryField = document.querySelector("error-category-parent");
+const errorCategoryContainer = document.getElementById("errorCategory");
+const errorOptions = document.getElementById("errorOptions");
+
+document.addEventListener("click", function (event) {
+  const clickedInside = errorCategoryContainer.contains(event.target);
+
+  if (clickedInside) {
+    errorOptions.classList.toggle("d-block");
+  } else {
+    errorOptions.classList.remove("d-block");
+  }
+});
+
+// display error category checkbox
+
+const renderErrorsMessage = (errors, type) => {
+  if (errors?.length === 0) {
+    const msg =
+      type === 1 ? "Good Job!<br>No Errors Found" : "Great!<br> No Notes Added";
+    return `<div>${msg}</div>`;
+  }
+  const errorsElements = errors
+    ?.map(
+      (error) => `
+    <p>
+      ${error}
+    </p>
+  `
+    )
+    .join("");
+
+  return `<div>${errorsElements}</div>`;
+};
