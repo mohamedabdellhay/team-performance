@@ -426,7 +426,7 @@ const memberField = document.getElementById("member");
 const qualityField = document.getElementById("quality");
 memberField.addEventListener("change", function () {
   console.log(memberField.value);
-  noteField.placeholder = `write a helpful note to support ${memberField.value} in enhancing their performance.`;
+  noteField.placeholder = `write a helpful note to support ${memberField.value} in enhancing their performance=> Separate with , or ،`;
   qualityField.placeholder = `Rate ${memberField.value}'s Quality from 1 to 10, be honest`;
   noteField.value = "";
   qualityField.value = "";
