@@ -297,3 +297,16 @@ tr:hover {
 .last-chart {
   grid-column: span 2;
 }
+
+/* styling downloaded buttons */
+
+#employeeExportButtons > button {
+  margin: 0 5px;
+  padding: 10px 20px;
+  border-radius: 5px;
+  border: none;
+  background-color: var(--primary);
+  color: white;
+  font-size: 16px;
+  cursor: pointer;
+}

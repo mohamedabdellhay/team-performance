@@ -78,6 +78,7 @@ function initializeDashboard() {
   });
 
   applyFilters();
+  addEmployeeExportButtons();
 }
 
 function applyFilters() {
@@ -172,67 +173,101 @@ function updateSummaryCards() {
 }
 
 function updateCharts() {
+  // Validate input
+  if (!filteredRecords || filteredRecords.length === 0) {
+    console.warn("No records to display");
+    return;
+  }
+
   // Group data by employee
   const employees = [...new Set(filteredRecords.map((r) => r.member))].sort();
 
+  // Color palette for consistent coloring across charts
+  const colorPalette = [
+    "#e74c3c",
+    "#3498db",
+    "#f39c12",
+    "#2ecc71",
+    "#9b59b6",
+    "#1abc9c",
+    "#d35400",
+    "#34495e",
+  ];
+
   // Prepare data for charts
-  const employeeProducts = {};
-  const employeeQuality = {};
-  const employeeErrors = {};
-  const employeeScores = {};
+  const employeeData = {};
 
   employees.forEach((emp) => {
     const empRecords = filteredRecords.filter((r) => r.member === emp);
-    employeeProducts[emp] = empRecords.reduce((sum, r) => sum + r.products, 0);
-    employeeQuality[emp] =
-      empRecords.reduce((sum, r) => sum + r.quality, 0) / empRecords.length;
-    employeeErrors[emp] = empRecords.reduce((sum, r) => sum + r.errors, 0);
-    employeeScores[emp] =
-      empRecords.reduce((sum, r) => {
-        return sum + (r.products * r.quality) / (r.errors || 1);
-      }, 0) / empRecords.length;
+    const recordCount = empRecords.length;
+
+    employeeData[emp] = {
+      totalProducts: empRecords.reduce((sum, r) => sum + r.products, 0),
+      avgQuality:
+        empRecords.reduce((sum, r) => sum + r.quality, 0) / recordCount,
+      totalErrors: empRecords.reduce((sum, r) => sum + r.errors, 0),
+      avgScore:
+        empRecords.reduce((sum, r) => {
+          return sum + (r.products * r.quality) / Math.max(r.errors, 1);
+        }, 0) / recordCount,
+      recordCount,
+    };
   });
 
   // Get sorted dates for trend chart
-  const dates = [...new Set(filteredRecords.map((r) => r.date))].sort();
+  const dates = [...new Set(filteredRecords.map((r) => r.date))].sort(
+    (a, b) => new Date(a) - new Date(b)
+  );
 
   // Destroy existing charts if they exist
-  [
+  const charts = [
     productivityChart,
     qualityChart,
     errorChart,
     trendChart,
     dailyScoreChart,
-  ].forEach((chart) => {
-    if (chart) chart.destroy();
+  ];
+
+  charts.forEach((chart) => {
+    if (chart && typeof chart.destroy === "function") {
+      chart.destroy();
+    }
   });
 
+  // Helper function to create chart config
+  const createChartConfig = (elementId, type, labels, datasets, options) => {
+    return new Chart(document.getElementById(elementId), {
+      type,
+      data: { labels, datasets },
+      options,
+    });
+  };
+
   // Productivity Chart (Bar)
-  productivityChart = new Chart(document.getElementById("productivityChart"), {
-    type: "bar",
-    data: {
-      labels: employees,
-      datasets: [
-        {
-          label: "Total Products",
-          data: employees.map((emp) => employeeProducts[emp]),
-          backgroundColor: "#3498db",
-          borderColor: "#2980b9",
-          borderWidth: 1,
-        },
-      ],
-    },
-    options: {
+  productivityChart = createChartConfig(
+    "productivityChart",
+    "bar",
+    employees,
+    [
+      {
+        label: "Total Products",
+        data: employees.map((emp) => employeeData[emp].totalProducts),
+        backgroundColor: "#3498db",
+        borderColor: "#2980b9",
+        borderWidth: 1,
+      },
+    ],
+    {
       responsive: true,
       plugins: {
         tooltip: {
           callbacks: {
             afterLabel: (context) => {
               const emp = context.label;
-              return `Avg: ${(
-                employeeProducts[emp] /
-                filteredRecords.filter((r) => r.member === emp).length
-              ).toFixed(1)} per day`;
+              const data = employeeData[emp];
+              return `Avg: ${(data.totalProducts / data.recordCount).toFixed(
+                1
+              )} per day`;
             },
           },
         },
@@ -240,208 +275,130 @@ function updateCharts() {
       scales: {
         y: {
           beginAtZero: true,
-          title: {
-            display: true,
-            text: "Number of Products",
-          },
+          title: { display: true, text: "Number of Products" },
         },
       },
-    },
-  });
+    }
+  );
 
   // Quality Chart (Horizontal Bar)
-  qualityChart = new Chart(document.getElementById("qualityChart"), {
-    type: "bar",
-    data: {
-      labels: employees,
-      datasets: [
-        {
-          label: "Average Quality Score",
-          data: employees.map((emp) => employeeQuality[emp]),
-          backgroundColor: "#2ecc71",
-          borderColor: "#27ae60",
-          borderWidth: 1,
-        },
-      ],
-    },
-    options: {
+  qualityChart = createChartConfig(
+    "qualityChart",
+    "bar",
+    employees,
+    [
+      {
+        label: "Average Quality Score",
+        data: employees.map((emp) => employeeData[emp].avgQuality),
+        backgroundColor: "#2ecc71",
+        borderColor: "#27ae60",
+        borderWidth: 1,
+      },
+    ],
+    {
       indexAxis: "y",
       responsive: true,
       scales: {
         x: {
           beginAtZero: true,
           max: 10,
-          title: {
-            display: true,
-            text: "Quality Rating (1-10)",
-          },
+          title: { display: true, text: "Quality Rating (1-10)" },
         },
       },
-    },
-  });
+    }
+  );
 
   // Error Chart (Pie)
-  errorChart = new Chart(document.getElementById("errorChart"), {
-    type: "pie",
-    data: {
-      labels: employees,
-      datasets: [
-        {
-          label: "Error Distribution",
-          data: employees.map((emp) => employeeErrors[emp]),
-          backgroundColor: [
-            "#e74c3c",
-            "#f39c12",
-            "#3498db",
-            "#2ecc71",
-            "#9b59b6",
-            "#1abc9c",
-            "#d35400",
-            "#34495e",
-          ],
-          borderWidth: 1,
-        },
-      ],
-    },
-    options: {
+  errorChart = createChartConfig(
+    "errorChart",
+    "pie",
+    employees,
+    [
+      {
+        label: "Error Distribution",
+        data: employees.map((emp) => employeeData[emp].totalErrors),
+        backgroundColor: colorPalette,
+        borderWidth: 1,
+      },
+    ],
+    {
       responsive: true,
       plugins: {
         tooltip: {
           callbacks: {
             afterLabel: (context) => {
-              const emp = context.label;
               const total = context.dataset.data.reduce((a, b) => a + b, 0);
-              const percentage = ((context.raw / total) * 100).toFixed(1);
-              return `Percentage: ${percentage}%`;
+              return `Percentage: ${((context.raw / total) * 100).toFixed(1)}%`;
             },
           },
         },
       },
-    },
-  });
+    }
+  );
 
   // Trend Chart (Line)
-  const trendData = {};
-  employees.forEach((emp) => {
-    trendData[emp] = dates.map((date) => {
+  const trendDatasets = employees.map((emp, i) => ({
+    label: emp,
+    data: dates.map((date) => {
       const record = filteredRecords.find(
         (r) => r.member === emp && r.date === date
       );
       return record ? record.products : null;
-    });
-  });
+    }),
+    borderColor: colorPalette[i % colorPalette.length],
+    backgroundColor: colorPalette[i % colorPalette.length],
+    tension: 0.3,
+    fill: false,
+    pointRadius: 4,
+    pointHoverRadius: 6,
+  }));
 
-  trendChart = new Chart(document.getElementById("trendChart"), {
-    type: "line",
-    data: {
-      labels: dates,
-      datasets: employees.map((emp, i) => ({
-        label: emp,
-        data: trendData[emp],
-        borderColor: [
-          "#e74c3c",
-          "#3498db",
-          "#f39c12",
-          "#2ecc71",
-          "#9b59b6",
-          "#1abc9c",
-          "#d35400",
-          "#34495e",
-        ][i % 8],
-        backgroundColor: [
-          "#e74c3c",
-          "#3498db",
-          "#f39c12",
-          "#2ecc71",
-          "#9b59b6",
-          "#1abc9c",
-          "#d35400",
-          "#34495e",
-        ][i % 8],
-        tension: 0.3,
-        fill: false,
-        pointRadius: 4,
-        pointHoverRadius: 6,
-      })),
-    },
-    options: {
-      responsive: true,
-      plugins: {
-        tooltip: {
-          callbacks: {
-            afterLabel: (context) => {
-              const record = filteredRecords.find(
-                (r) =>
-                  r.member === context.dataset.label && r.date === context.label
-              );
-              if (record) {
-                return `Quality: ${record.quality}\nErrors: ${record.errors}`;
-              }
-              return "";
-            },
-          },
-        },
-      },
-      scales: {
-        y: {
-          beginAtZero: true,
-          title: {
-            display: true,
-            text: "Number of Products",
-          },
-        },
-        x: {
-          title: {
-            display: true,
-            text: "Date",
+  trendChart = createChartConfig("trendChart", "line", dates, trendDatasets, {
+    responsive: true,
+    plugins: {
+      tooltip: {
+        callbacks: {
+          afterLabel: (context) => {
+            const record = filteredRecords.find(
+              (r) =>
+                r.member === context.dataset.label && r.date === context.label
+            );
+            return record
+              ? `Quality: ${record.quality}\nErrors: ${record.errors}`
+              : "";
           },
         },
       },
     },
+    scales: {
+      y: {
+        beginAtZero: true,
+        title: { display: true, text: "Number of Products" },
+      },
+      x: {
+        title: { display: true, text: "Date" },
+      },
+    },
   });
 
-  // get employees names
-  const employeesNames = [...new Set(allRecords.map((d) => d.member))];
+  // Daily Score Chart
+  const allEmployees = [...new Set(allRecords.map((d) => d.member))];
+  const allDates = [...new Set(allRecords.map((d) => d.date))].sort(
+    (a, b) => new Date(a) - new Date(b)
+  );
 
-  // get all records
-  const labels = [...new Set(allRecords.map((d) => d.date))]; // unique dates
-  labels.sort((a, b) => new Date(a) - new Date(b)); // sort dates
-
-  // get all records
-  const datasets = employeesNames.map((employee, i) => {
+  const dailyScoreDatasets = allEmployees.map((employee, i) => {
     const employeeData = allRecords.filter((d) => d.member === employee);
-    const employeeScores = labels.map((date) => {
+    const scores = allDates.map((date) => {
       const record = employeeData.find((d) => d.date === date);
-      return record
-        ? record.dailyScore - 5 > 0
-          ? record.dailyScore - 5
-          : 0
-        : 0;
+      return record ? Math.max(0, record.dailyScore - 5) : 0;
     });
 
     return {
       label: employee,
-      data: employeeScores,
-      borderColor: [
-        "#e74c3c",
-        "#3498db",
-        "#f39c12",
-        "#2ecc71",
-        "#9b59b6",
-        "#1abc9c",
-        "#d35400",
-        "#34495e",
-      ][i % 8],
-      backgroundColor: [
-        "#e74c3c",
-        "#3498db",
-        "#f39c12",
-        "#2ecc71",
-        "#9b59b6",
-        "#1abc9c",
-        "#d35400",
-        "#34495e",
-      ][i % 8],
+      data: scores,
+      borderColor: colorPalette[i % colorPalette.length],
+      backgroundColor: colorPalette[i % colorPalette.length],
       tension: 0.3,
       fill: false,
       pointRadius: 4,
@@ -449,70 +406,32 @@ function updateCharts() {
     };
   });
 
-  // get random color
-  // function getRandomColor(alpha = 1) {
-  //   const letters = "0123456789ABCDEF";
-  //   let color = "#";
-  //   for (let i = 0; i < 6; i++) {
-  //     color += letters[Math.floor(Math.random() * 16)];
-  //   }
-  //   return `rgba(${parseInt(color.slice(1, 3), 16)}, ${parseInt(
-  //     color.slice(3, 5),
-  //     16
-  //   )}, ${parseInt(color.slice(5, 7), 16)}, ${alpha})`;
-  // }
-
-  // create daily score chart
   dailyScoreChart = new Chart(
     document.getElementById("dailyScoreChart").getContext("2d"),
     {
       type: "line",
       data: {
-        labels,
-        datasets,
+        labels: allDates,
+        datasets: dailyScoreDatasets,
       },
       options: {
         responsive: true,
         plugins: {
-          title: {
-            display: false,
-          },
-          legend: {
-            display: true,
-          },
           tooltip: {
             callbacks: {
               label: (ctx) => `Score: ${ctx.raw}`,
             },
           },
         },
-        // layout: {
-        //   padding: {
-        //     top: 20,
-        //     right: 20,
-        //     bottom: 20,
-        //     left: 20,
-        //   },
-        // },
-
         scales: {
           y: {
             beginAtZero: true,
             max: 100,
-            // suggestedMax: 105,
-            title: {
-              display: true,
-              text: "Score",
-            },
-            ticks: {
-              stepSize: 5,
-            },
+            title: { display: true, text: "Score" },
+            ticks: { stepSize: 5 },
           },
           x: {
-            title: {
-              display: true,
-              text: "Date",
-            },
+            title: { display: true, text: "Date" },
           },
         },
       },
@@ -710,177 +629,199 @@ function calculateDailyScore(products, quality, errors) {
   return Math.round(Math.max(0, Math.min(100, percentageScore)));
 }
 
-/*
+// function exportEmployeeMonthlyReports() {
+//   if (!allRecords || allRecords.length === 0) {
+//     alert("No data available to export");
+//     return;
+//   }
 
-[
-    {
-        "date": "2025-04-10",
-        "member": "Khalid",
-        "products": 30,
-        "quality": 9,
-        "errors": 9,
-        "dailyScore": 91,
-        "_sourceFile": "Employee-Performance-2025-04-10.json"
-    },
-    {
-        "date": "2025-04-10",
-        "member": "Sherif",
-        "products": 33,
-        "quality": 8,
-        "errors": 9,
-        "dailyScore": 86,
-        "_sourceFile": "Employee-Performance-2025-04-10.json"
-    },
-    {
-        "date": "2025-04-10",
-        "member": "Gohary",
-        "products": 34,
-        "quality": 9,
-        "errors": 1,
-        "dailyScore": 94,
-        "_sourceFile": "Employee-Performance-2025-04-10.json"
-    },
-    {
-        "date": "2025-04-10",
-        "member": "Lamees",
-        "products": 28,
-        "quality": 9,
-        "errors": 2,
-        "dailyScore": 94,
-        "_sourceFile": "Employee-Performance-2025-04-10.json"
-    },
-    {
-        "date": "2025-04-10",
-        "member": "Shreen",
-        "products": 30,
-        "quality": 10,
-        "errors": 0,
-        "dailyScore": 100,
-        "_sourceFile": "Employee-Performance-2025-04-10.json"
+//   // Group records by employee
+//   const employees = [...new Set(allRecords.map((r) => r.member))];
+
+//   employees.forEach((employee) => {
+//     // Filter records for this employee
+//     const employeeRecords = allRecords.filter((r) => r.member === employee);
+
+//     // Group by month
+//     const monthlyData = {};
+//     employeeRecords.forEach((record) => {
+//       const date = new Date(record.date);
+//       const monthYear = `${date.getFullYear()}-${(date.getMonth() + 1)
+//         .toString()
+//         .padStart(2, "0")}`;
+
+//       if (!monthlyData[monthYear]) {
+//         monthlyData[monthYear] = [];
+//       }
+//       monthlyData[monthYear].push(record);
+//     });
+
+//     // Create a workbook for each month
+//     Object.entries(monthlyData).forEach(([month, records]) => {
+//       // Create workbook
+//       const wb = XLSX.utils.book_new();
+
+//       // Prepare worksheet data
+//       const wsData = [
+//         ["Employee Performance Report"],
+//         [`Employee: ${employee}`],
+//         [`Month: ${month}`],
+//         [], // empty row
+//         [
+//           "Date",
+//           "Products",
+//           "Quality",
+//           "Errors",
+//           "Daily Score",
+//           "Error Categories",
+//           "Error Descriptions",
+//         ],
+//       ];
+
+//       // Add records
+//       records.forEach((record) => {
+//         wsData.push([
+//           record.date,
+//           record.products,
+//           record.quality,
+//           record.errors,
+//           record.dailyScore,
+//           record.errorCategory.join(", "),
+//           record.errorDescription.join(", "),
+//         ]);
+//       });
+
+//       // Add summary row
+//       wsData.push([]); // empty row
+//       wsData.push([
+//         "Monthly Totals/Averages",
+//         records.reduce((sum, r) => sum + r.products, 0),
+//         records.reduce((sum, r) => sum + r.quality, 0) / records.length,
+//         records.reduce((sum, r) => sum + r.errors, 0),
+//         records.reduce((sum, r) => sum + r.dailyScore, 0) / records.length,
+//         "",
+//         "",
+//       ]);
+
+//       // Create worksheet
+//       const ws = XLSX.utils.aoa_to_sheet(wsData);
+
+//       // Add worksheet to workbook
+//       XLSX.utils.book_append_sheet(wb, ws, "Performance");
+
+//       // Generate file name
+//       const fileName = `${employee}_Performance_${month}.xlsx`;
+
+//       // Export to Excel
+//       XLSX.writeFile(wb, fileName);
+//     });
+//   });
+
+//   alert(`Exported ${employees.length} employee reports successfully!`);
+// }
+
+// Add this to your initializeDashboard() function
+function addEmployeeExportButtons() {
+  const employeeContainer = document.getElementById("employeeExportButtons");
+  employeeContainer.innerHTML = ""; // Clear existing buttons
+
+  const employees = [...new Set(allRecords.map((r) => r.member))].sort();
+
+  employees.forEach((employee) => {
+    const btn = document.createElement("button");
+    btn.className = "btn btn-sm btn-outline-primary m-1";
+    btn.style.color = "#000";
+    btn.innerHTML = `<i class="fas fa-download"></i> ${employee}`;
+    btn.onclick = () => exportEmployeeData(employee);
+    employeeContainer.appendChild(btn);
+  });
+}
+
+// Individual employee export function
+function exportEmployeeData(employee) {
+  const employeeRecords = allRecords.filter((r) => r.member === employee);
+
+  if (employeeRecords.length === 0) {
+    alert(`No data found for ${employee}`);
+    return;
+  }
+
+  // Group by month
+  const monthlyData = {};
+  employeeRecords.forEach((record) => {
+    const date = new Date(record.date);
+    const monthYear = `${date.getFullYear()}-${(date.getMonth() + 1)
+      .toString()
+      .padStart(2, "0")}`;
+
+    if (!monthlyData[monthYear]) {
+      monthlyData[monthYear] = [];
     }
-]
-*/
+    monthlyData[monthYear].push(record);
+  });
 
-// function createEmployeePerformanceChart() {
-//   // تجميع بيانات الموظفين
-//   const employees = [...new Set(allRecords.map((record) => record.member))];
+  const wb = XLSX.utils.book_new();
 
-//   // إعداد بيانات لكل موظف
-//   const datasets = employees.map((employee) => {
-//     const employeeRecords = allRecords
-//       .filter((r) => r.member === employee)
-//       .sort((a, b) => new Date(a.date) - new Date(b.date));
+  Object.entries(monthlyData).forEach(([month, records]) => {
+    const headerRows = 5; // Number of header rows before data starts
+    const firstDataRow = headerRows + 1;
+    const lastDataRow = headerRows + records.length;
 
-//     return {
-//       label: employee,
-//       data: allRecords.map((record) =>
-//         record.member === employee ? record.dailyScore : null
-//       ),
-//       borderColor: getEmployeeColor(employee),
-//       backgroundColor: "rgba(255, 255, 255, 0.1)",
-//       borderWidth: 2,
-//       tension: 0.3,
-//       pointRadius: 4,
-//       pointHoverRadius: 6,
-//       fill: false,
-//     };
-//   });
+    const wsData = [
+      ["Employee Performance Report"],
+      [`Employee: ${employee}`],
+      [`Period: ${month}`],
+      [],
+      [
+        "Date",
+        "Products",
+        "Quality",
+        "Errors",
+        "Daily Score",
+        "Error Categories",
+        "Error Descriptions",
+      ],
+    ];
 
-//   // إنشاء الرسم البياني
-//   const ctx = document.getElementById("performanceChart").getContext("2d");
-//   return new Chart(ctx, {
-//     type: "line",
-//     data: {
-//       labels: allRecords.map((r) => r.date),
-//       datasets: datasets,
-//     },
-//     options: {
-//       responsive: true,
-//       maintainAspectRatio: false,
-//       plugins: {
-//         title: {
-//           display: true,
-//           text: "Employee Performance Trends",
-//           font: { size: 18 },
-//         },
-//         tooltip: {
-//           callbacks: {
-//             label: function (context) {
-//               const record = allRecords.find(
-//                 (r) =>
-//                   r.member === context.dataset.label && r.date === context.label
-//               );
-//               return [
-//                 `Employee: ${context.dataset.label}`,
-//                 `Date: ${context.label}`,
-//                 `Score: ${context.raw}`,
-//                 `Products: ${record.products}`,
-//                 `Quality: ${record.quality}/10`,
-//                 `Errors: ${record.errors}`,
-//               ];
-//             },
-//             footer: (context) => {
-//               const score = context[0].raw;
-//               if (score >= 90) return "🌟 Excellent Performance";
-//               if (score >= 75) return "👍 Good Performance";
-//               if (score >= 60) return "✔️ Average Performance";
-//               return "⚠️ Needs Improvement";
-//             },
-//           },
-//         },
-//         legend: {
-//           position: "top",
-//           labels: {
-//             boxWidth: 12,
-//             padding: 20,
-//             font: { size: 12 },
-//           },
-//         },
-//       },
-//       scales: {
-//         y: {
-//           beginAtZero: true,
-//           max: 100,
-//           title: {
-//             display: true,
-//             text: "Performance Score",
-//             font: { weight: "bold" },
-//           },
-//           grid: {
-//             color: "rgba(0, 0, 0, 0.05)",
-//           },
-//         },
-//         x: {
-//           title: {
-//             display: true,
-//             text: "Date",
-//             font: { weight: "bold" },
-//           },
-//           grid: {
-//             display: false,
-//           },
-//         },
-//       },
-//       interaction: {
-//         intersect: false,
-//         mode: "index",
-//       },
-//     },
-//   });
-// }
+    // Add records
+    records.forEach((record) => {
+      wsData.push([
+        record.date,
+        record.products,
+        record.quality,
+        record.errors,
+        record.dailyScore,
+        record.errorCategory?.join(", ") || "",
+        record.errorDescription?.join(", ") || "",
+      ]);
+    });
 
-// // دالة مساعدة لإعطاء ألوان ثابتة لكل موظف
-// function getEmployeeColor(employee) {
-//   const colors = [
-//     "#3498db",
-//     "#e74c3c",
-//     "#2ecc71",
-//     "#f39c12",
-//     "#9b59b6",
-//     "#1abc9c",
-//     "#d35400",
-//     "#34495e",
-//   ];
-//   const index = [...new Set(allRecords.map((r) => r.member))].indexOf(employee);
-//   return colors[index % colors.length];
-// }
+    // Add summary with dynamic formulas
+    wsData.push(
+      [],
+      [
+        "TOTALS/AVERAGES",
+        { f: `SUM(B${firstDataRow}:B${lastDataRow})` }, // Dynamic SUM formula
+        { f: `AVERAGE(C${firstDataRow}:C${lastDataRow})` }, // Dynamic AVERAGE formula
+        { f: `SUM(D${firstDataRow}:D${lastDataRow})` },
+        { f: `AVERAGE(E${firstDataRow}:E${lastDataRow})` },
+        "",
+        "",
+      ]
+    );
+
+    const ws = XLSX.utils.aoa_to_sheet(wsData);
+
+    // Formatting
+    ws["A1"].s = { font: { bold: true, sz: 16 } };
+    // ... (rest of your formatting code)
+
+    XLSX.utils.book_append_sheet(
+      wb,
+      ws,
+      month.length > 7 ? month.substring(0, 7) : month
+    );
+  });
+
+  XLSX.writeFile(wb, `${employee}_Performance_Report.xlsx`);
+}
