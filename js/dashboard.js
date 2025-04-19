@@ -423,13 +423,27 @@ function updateCharts() {
       options: {
         responsive: true,
         spanGaps: true,
-        plugins: {
-          tooltip: {
-            callbacks: {
-              label: (ctx) => `Score: ${ctx.raw}`,
-            },
-          },
-        },
+        // plugins: {
+        //   tooltip: {
+        //     callbacks: {
+        //       label: (ctx) => `Score: ${ctx.raw}`,
+        //     },
+        //   },
+        // },
+        // plugins: {
+        //   tooltip: {
+        //     callbacks: {
+        //       afterLabel: (context) => {
+        //         const record = filteredRecords.find(
+        //           (r) =>
+        //             r.member === context.dataset.label &&
+        //             r.date === context.label
+        //         );
+        //         return record ? `` : ``;
+        //       },
+        //     },
+        //   },
+        // },
         scales: {
           y: {
             beginAtZero: true,
