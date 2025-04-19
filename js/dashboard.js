@@ -343,7 +343,7 @@ function updateCharts() {
       const record = filteredRecords.find(
         (r) => r.member === emp && r.date === date
       );
-      return record ? record.products : null;
+      return record.products > 0 ? record.products : null;
     }),
     borderColor: colorPalette[i % colorPalette.length],
     backgroundColor: colorPalette[i % colorPalette.length],
@@ -351,6 +351,7 @@ function updateCharts() {
     fill: false,
     pointRadius: 4,
     pointHoverRadius: 6,
+    spanGaps: true,
   }));
 
   trendChart = createChartConfig("trendChart", "line", dates, trendDatasets, {
@@ -389,11 +390,16 @@ function updateCharts() {
 
   const dailyScoreDatasets = allEmployees.map((employee, i) => {
     const employeeData = allRecords.filter((d) => d.member === employee);
+
     const scores = allDates.map((date) => {
       const record = employeeData.find((d) => d.date === date);
-      return record ? Math.max(0, record.dailyScore - 5) : 0;
+
+      return record.dailyScore > 0 ? Math.max(0, record.dailyScore - 5) : null;
     });
 
+    // const scores = allDates.map((date) => {
+    //         const record = employeeData.find((d) => d.date === date);
+    //         return record ? Math.max(0, record.dailyScore - 5) : null; // استخدم null
     return {
       label: employee,
       data: scores,
@@ -416,6 +422,7 @@ function updateCharts() {
       },
       options: {
         responsive: true,
+        spanGaps: true,
         plugins: {
           tooltip: {
             callbacks: {
