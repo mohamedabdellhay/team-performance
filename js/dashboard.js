@@ -55,7 +55,7 @@ const domElements = {
 function initDashboard() {
   try {
     domElements.fileInput.addEventListener("change", handleFileUpload);
-    console.log("Dashboard initialized successfully");
+    console.log("الحمد لله Dashboard initialized successfully");
   } catch (error) {
     console.error("Dashboard initialization failed:", error);
     alert("Failed to initialize dashboard. Please check console for details.");
@@ -241,9 +241,10 @@ function showNoDataMessage() {
 
 // Destroy all existing charts
 function destroyAllCharts() {
-  Object.values(dashboardState.charts).forEach((chart) => {
+  Object.entries(dashboardState.charts).forEach(([key, chart]) => {
     if (chart && typeof chart.destroy === "function") {
       chart.destroy();
+      dashboardState.charts[key] = null; // Add this line
     }
   });
 }
@@ -529,30 +530,47 @@ function createTrendChart(dates, employees) {
 // Create daily score chart
 function createDailyScoreChart() {
   try {
+    // Get the canvas element and its parent
+    const canvas = document.getElementById("dailyScoreChart");
+    if (!canvas) {
+      throw new Error("Daily score chart canvas not found");
+    }
+
+    // Clone the canvas parent to completely clear any existing chart
+    const parent = canvas.parentNode;
+    const newCanvas = canvas.cloneNode(true);
+    parent.replaceChild(newCanvas, canvas);
+
+    // Ensure any existing chart reference is properly destroyed
+    if (dashboardState.charts.dailyScore) {
+      try {
+        dashboardState.charts.dailyScore.destroy();
+      } catch (e) {
+        console.warn("Error destroying previous chart:", e);
+      }
+      dashboardState.charts.dailyScore = null;
+    }
+
     // Get the filtered employees and dates
     const filteredEmployees = [
       ...new Set(dashboardState.filteredRecords.map((d) => d.member)),
     ];
-    const allDates = [
-      ...new Set(dashboardState.allRecords.map((d) => d.date)),
+    const filteredDates = [
+      ...new Set(dashboardState.filteredRecords.map((d) => d.date)),
     ].sort((a, b) => new Date(a) - new Date(b));
 
     // Create a color map for consistent employee colors
     const colorMap = createEmployeeColorMap();
 
-    // Prepare datasets - only include filtered employees
+    // Prepare datasets
     const datasets = filteredEmployees.map((employee, i) => {
-      const employeeData = dashboardState.allRecords.filter(
+      const employeeData = dashboardState.filteredRecords.filter(
         (d) => d.member === employee
       );
 
-      const scores = allDates.map((date) => {
+      const scores = filteredDates.map((date) => {
         const record = employeeData.find((d) => d.date === date);
-        // Only show data points that exist in filtered records
-        const isVisible = dashboardState.filteredRecords.some(
-          (r) => r.member === employee && r.date === date
-        );
-        return isVisible && record?.dailyScore > 0
+        return record?.dailyScore > 0
           ? Math.max(0, record.dailyScore - 5)
           : null;
       });
@@ -572,19 +590,11 @@ function createDailyScoreChart() {
       };
     });
 
-    // Get chart context
-    const ctx = document.getElementById("dailyScoreChart").getContext("2d");
-
-    // Destroy previous chart if it exists
-    if (dashboardState.charts.dailyScore) {
-      dashboardState.charts.dailyScore.destroy();
-    }
-
-    // Create new chart
-    dashboardState.charts.dailyScore = new Chart(ctx, {
+    // Create new chart on the fresh canvas
+    dashboardState.charts.dailyScore = new Chart(newCanvas, {
       type: "line",
       data: {
-        labels: allDates,
+        labels: filteredDates,
         datasets: datasets,
       },
       options: {
@@ -594,7 +604,7 @@ function createDailyScoreChart() {
           tooltip: {
             callbacks: {
               label: function (context) {
-                const record = dashboardState.allRecords.find(
+                const record = dashboardState.filteredRecords.find(
                   (r) =>
                     r.member === context.dataset.label &&
                     r.date === context.label
@@ -616,11 +626,9 @@ function createDailyScoreChart() {
           },
           legend: {
             onClick: (e, legendItem, legend) => {
-              // Toggle visibility when legend item is clicked
               const index = legendItem.datasetIndex;
               const chart = legend.chart;
               const meta = chart.getDatasetMeta(index);
-
               meta.hidden = meta.hidden === null ? true : null;
               chart.update();
             },
