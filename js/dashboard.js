@@ -807,14 +807,18 @@ function updatePagination(totalRecords) {
   const prevLi = createPaginationItem(
     "Previous",
     dashboardState.currentPage === 1,
+    false,
     () => changePage(dashboardState.currentPage - 1)
   );
   pagination.appendChild(prevLi);
 
   // Page numbers
   for (let i = 1; i <= totalPages; i++) {
-    const li = createPaginationItem(i, i === dashboardState.currentPage, () =>
-      changePage(i)
+    const li = createPaginationItem(
+      i,
+      i === dashboardState.currentPage,
+      i === dashboardState.currentPage,
+      () => changePage(i)
     );
     pagination.appendChild(li);
   }
@@ -823,18 +827,21 @@ function updatePagination(totalRecords) {
   const nextLi = createPaginationItem(
     "Next",
     dashboardState.currentPage === totalPages,
+    false,
     () => changePage(dashboardState.currentPage + 1)
   );
   pagination.appendChild(nextLi);
 }
 
 // Create pagination item
-function createPaginationItem(text, isDisabled, onClick) {
+function createPaginationItem(text, isDisabled, pageNumber = false, onClick) {
   const li = document.createElement("li");
   li.className = "page-item";
 
   const a = document.createElement("a");
-  a.className = `page-link ${isDisabled ? "disabled" : ""}`;
+  a.className = `page-link ${isDisabled ? "disabled" : ""} ${
+    pageNumber ? "activePage" : ""
+  }`;
   a.textContent = text;
   a.onclick = !isDisabled ? onClick : null;
 

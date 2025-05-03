@@ -311,6 +311,9 @@ tr:hover {
   cursor: pointer;
 }
 .disabled {
+  cursor: not-allowed;
+}
+.activePage.disabled {
   background: #8bd0ff57;
   cursor: not-allowed;
 }
