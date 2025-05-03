@@ -310,3 +310,7 @@ tr:hover {
   font-size: 16px;
   cursor: pointer;
 }
+.disabled {
+  background: #8bd0ff57;
+  cursor: not-allowed;
+}
