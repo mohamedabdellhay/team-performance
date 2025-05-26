@@ -55,7 +55,7 @@ const domElements = {
 function initDashboard() {
   try {
     domElements.fileInput.addEventListener("change", handleFileUpload);
-    console.log("الحمد لله Dashboard initialized successfully");
+    console.log("Dashboard initialized successfully");
   } catch (error) {
     console.error("Dashboard initialization failed:", error);
     alert("Failed to initialize dashboard. Please check console for details.");
@@ -244,7 +244,7 @@ function destroyAllCharts() {
   Object.entries(dashboardState.charts).forEach(([key, chart]) => {
     if (chart && typeof chart.destroy === "function") {
       chart.destroy();
-      dashboardState.charts[key] = null; // Add this line
+      dashboardState.charts[key] = null;
     }
   });
 }
@@ -276,10 +276,10 @@ function updateSummaryCards() {
       const card = document.createElement("div");
       card.className = "summary-card";
       card.innerHTML = `
-        <div style="font-size: 24px; margin-bottom: 5px;">${summary.icon}</div>
-        <div class="summary-value">${summary.value}</div>
-        <div class="summary-label">${summary.label}</div>
-      `;
+                        <div style="font-size: 24px; margin-bottom: 5px;">${summary.icon}</div>
+                        <div class="summary-value">${summary.value}</div>
+                        <div class="summary-label">${summary.label}</div>
+                    `;
       summaryCards.appendChild(card);
     });
   } catch (error) {
@@ -780,14 +780,16 @@ function populateTable(records) {
     const status = getPerformanceStatus(record);
 
     row.innerHTML = `
-      <td>${record.date}</td>
-      <td>${record.member}</td>
-      <td>${record.products}</td>
-      <td>${record.quality}</td>
-      <td>${record.errors}</td>
-      <td>${record._score.toFixed(1)}</td>
-      <td><span class="badge ${status.class}">${status.text}</span></td>
-    `;
+                    <td>${record.date}</td>
+                    <td>${record.member}</td>
+                    <td>${record.products}</td>
+                    <td>${record.quality}</td>
+                    <td>${record.errors}</td>
+                    <td>${record._score.toFixed(1)}</td>
+                    <td><span class="badge ${status.class}">${
+      status.text
+    }</span></td>
+                `;
 
     tableBody.appendChild(row);
   });
@@ -842,13 +844,13 @@ function updatePagination(totalRecords) {
 }
 
 // Create pagination item
-function createPaginationItem(text, isDisabled, pageNumber = false, onClick) {
+function createPaginationItem(text, isDisabled, isActive, onClick) {
   const li = document.createElement("li");
   li.className = "page-item";
 
   const a = document.createElement("a");
   a.className = `page-link ${isDisabled ? "disabled" : ""} ${
-    pageNumber ? "activePage" : ""
+    isActive ? "activePage" : ""
   }`;
   a.textContent = text;
   a.onclick = !isDisabled ? onClick : null;
@@ -904,10 +906,19 @@ function addEmployeeExportButtons() {
   try {
     const container = domElements.employeeExportButtons;
     container.innerHTML = "";
+    console.log("dashboardState:", dashboardState.filteredRecords);
 
+    // Use filteredRecords to only show buttons for employees in current filter
     const employees = [
-      ...new Set(dashboardState.allRecords.map((r) => r.member)),
+      ...new Set(dashboardState.filteredRecords.map((r) => r.member)),
     ].sort();
+    console.log("employees", employees);
+
+    if (employees.length === 0) {
+      container.innerHTML =
+        '<div class="text-muted">No employees in current filter</div>';
+      return;
+    }
 
     employees.forEach((employee) => {
       const btn = document.createElement("button");
@@ -917,6 +928,13 @@ function addEmployeeExportButtons() {
       btn.onclick = () => exportEmployeeData(employee);
       container.appendChild(btn);
     });
+
+    // Add button to export all filtered data
+    const allBtn = document.createElement("button");
+    allBtn.className = "btn btn-sm btn-primary m-1";
+    allBtn.innerHTML = `<i class="fas fa-download"></i> Export All Filtered Data`;
+    allBtn.onclick = exportAllFilteredData;
+    container.appendChild(allBtn);
   } catch (error) {
     console.error("Error adding export buttons:", error);
     throw new Error("Could not create export buttons");
@@ -926,65 +944,51 @@ function addEmployeeExportButtons() {
 // Export employee data
 async function exportEmployeeData(employee) {
   try {
-    const employeeRecords = dashboardState.allRecords.filter(
+    // Use filteredRecords instead of allRecords
+    const employeeRecords = dashboardState.filteredRecords.filter(
       (r) => r.member === employee
     );
 
     if (employeeRecords.length === 0) {
-      alert(`No data found for ${employee}`);
+      alert(`No filtered data found for ${employee}`);
       return;
     }
-
-    // Group by month
-    const monthlyData = groupRecordsByMonth(employeeRecords);
 
     // Create workbook
     const wb = XLSX.utils.book_new();
 
-    // Add a worksheet for each month
-    Object.entries(monthlyData).forEach(([month, records]) => {
-      const wsData = createWorksheetData(employee, month, records);
-      const ws = XLSX.utils.aoa_to_sheet(wsData);
-      XLSX.utils.book_append_sheet(wb, ws, month.substring(0, 7));
-    });
+    // Create worksheet data for the filtered records
+    const wsData = createFilteredWorksheetData(employee, employeeRecords);
+    const ws = XLSX.utils.aoa_to_sheet(wsData);
+
+    // Use a single sheet named after the employee
+    XLSX.utils.book_append_sheet(wb, ws, `${employee}_Performance`);
 
     // Export to Excel
-    XLSX.writeFile(wb, `${employee}_Performance_Report.xlsx`);
+    XLSX.writeFile(wb, `${employee}_Filtered_Performance_Report.xlsx`);
   } catch (error) {
-    console.error(`Error exporting data for ${employee}:`, error);
-    alert(`Failed to export data: ${error.message}`);
+    console.error(`Error exporting filtered data for ${employee}:`, error);
+    alert(`Failed to export filtered data: ${error.message}`);
   }
 }
 
-// Group records by month
-function groupRecordsByMonth(records) {
-  const monthlyData = {};
-
-  records.forEach((record) => {
-    const date = new Date(record.date);
-    const monthYear = `${date.getFullYear()}-${(date.getMonth() + 1)
-      .toString()
-      .padStart(2, "0")}`;
-
-    if (!monthlyData[monthYear]) {
-      monthlyData[monthYear] = [];
-    }
-    monthlyData[monthYear].push(record);
-  });
-
-  return monthlyData;
-}
-
-// Create worksheet data for export
-function createWorksheetData(employee, month, records) {
+// Create worksheet data for filtered export
+function createFilteredWorksheetData(employee, records) {
   const headerRows = 5;
   const firstDataRow = headerRows + 1;
   const lastDataRow = headerRows + records.length;
 
+  // Get current filter values for the report header
+  const dateFrom = domElements.dateFrom.value || "All dates";
+  const dateTo = domElements.dateTo.value || "All dates";
+  const qualityMin = domElements.qualityFilter.value || "No minimum";
+  const maxErrors = domElements.errorsFilter.value || "No maximum";
+
   const wsData = [
-    ["Employee Performance Report"],
+    ["Employee Performance Report (Filtered Data)"],
     [`Employee: ${employee}`],
-    [`Period: ${month}`],
+    [`Date Range: ${dateFrom} to ${dateTo}`],
+    [`Quality Minimum: ${qualityMin}`, `Errors Maximum: ${maxErrors}`],
     [],
     [
       "Date",
@@ -992,6 +996,7 @@ function createWorksheetData(employee, month, records) {
       "Quality",
       "Errors",
       "Daily Score",
+      "Performance Status",
       "Error Categories",
       "Error Descriptions",
     ],
@@ -999,12 +1004,14 @@ function createWorksheetData(employee, month, records) {
 
   // Add records
   records.forEach((record) => {
+    const status = getPerformanceStatus(record);
     wsData.push([
       record.date,
       record.products,
       record.quality,
       record.errors,
       record.dailyScore,
+      status.text,
       record.errorCategory?.join(", ") || "",
       record.errorDescription?.join(", ") || "",
     ]);
@@ -1021,10 +1028,129 @@ function createWorksheetData(employee, month, records) {
       { f: `AVERAGE(E${firstDataRow}:E${lastDataRow})` },
       "",
       "",
+      "",
     ]
   );
 
   return wsData;
+}
+
+// Export all filtered data
+function exportAllFilteredData() {
+  try {
+    if (dashboardState.filteredRecords.length === 0) {
+      alert("No filtered data to export");
+      return;
+    }
+
+    // Create workbook
+    const wb = XLSX.utils.book_new();
+
+    // Create worksheet data for all filtered records
+    const wsData = createAllFilteredWorksheetData(
+      dashboardState.filteredRecords
+    );
+    const ws = XLSX.utils.aoa_to_sheet(wsData);
+
+    // Use a single sheet named "Filtered Data"
+    XLSX.utils.book_append_sheet(wb, ws, "Filtered Data");
+
+    // Get current filter values for filename
+    const dateFrom = domElements.dateFrom.value
+      ? domElements.dateFrom.value.replace(/-/g, "")
+      : "AllDates";
+    const dateTo = domElements.dateTo.value
+      ? domElements.dateTo.value.replace(/-/g, "")
+      : "AllDates";
+    const employeeFilter = domElements.employeeFilter.value || "AllEmployees";
+
+    // Export to Excel
+    XLSX.writeFile(
+      wb,
+      `Filtered_Performance_${employeeFilter}_${dateFrom}_to_${dateTo}.xlsx`
+    );
+  } catch (error) {
+    console.error("Error exporting all filtered data:", error);
+    alert(`Failed to export filtered data: ${error.message}`);
+  }
+}
+
+// Create worksheet data for all filtered records
+function createAllFilteredWorksheetData(records) {
+  const headerRows = 5;
+  const firstDataRow = headerRows + 1;
+  const lastDataRow = headerRows + records.length;
+
+  // Get current filter values for the report header
+  const dateFrom = domElements.dateFrom.value || "All dates";
+  const dateTo = domElements.dateTo.value || "All dates";
+  const employeeFilter = domElements.employeeFilter.value || "All employees";
+  const qualityMin = domElements.qualityFilter.value || "No minimum";
+  const maxErrors = domElements.errorsFilter.value || "No maximum";
+
+  const wsData = [
+    ["Employee Performance Report (All Filtered Data)"],
+    [`Date Range: ${dateFrom} to ${dateTo}`],
+    [`Employee: ${employeeFilter}`],
+    [`Quality Minimum: ${qualityMin}`, `Errors Maximum: ${maxErrors}`],
+    [],
+    [
+      "Date",
+      "Employee",
+      "Products",
+      "Quality",
+      "Errors",
+      "Daily Score",
+      "Performance Status",
+      "Error Categories",
+      "Error Descriptions",
+    ],
+  ];
+
+  // Add records
+  records.forEach((record) => {
+    const status = getPerformanceStatus(record);
+    wsData.push([
+      record.date,
+      record.member,
+      record.products,
+      record.quality,
+      record.errors,
+      record.dailyScore,
+      status.text,
+      record.errorCategory?.join(", ") || "",
+      record.errorDescription?.join(", ") || "",
+    ]);
+  });
+
+  // Add summary with formulas
+  wsData.push(
+    [],
+    [
+      "TOTALS/AVERAGES",
+      "",
+      { f: `SUM(C${firstDataRow}:C${lastDataRow})` },
+      { f: `AVERAGE(D${firstDataRow}:D${lastDataRow})` },
+      { f: `SUM(E${firstDataRow}:E${lastDataRow})` },
+      { f: `AVERAGE(F${firstDataRow}:F${lastDataRow})` },
+      "",
+      "",
+      "",
+    ]
+  );
+
+  return wsData;
+}
+
+// Sort table when header is clicked
+function sortTable(column) {
+  if (dashboardState.currentSort.column === column) {
+    dashboardState.currentSort.direction =
+      dashboardState.currentSort.direction === "asc" ? "desc" : "asc";
+  } else {
+    dashboardState.currentSort = { column, direction: "asc" };
+  }
+  sortAndUpdateTable();
 }
 
 // Initialize the dashboard when DOM is loaded
